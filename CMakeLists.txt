@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set(name xx2dvk)
 project(${name})
 
@@ -31,6 +33,8 @@ if(MSVC)
 	add_definitions("-D_SECURE_SCL=0")
 	add_definitions("-D_HAS_ITERATOR_DEBUGGING=0")
 
+	# todo: precompile header
+
 	set_target_properties(${name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
 
 	SET_TARGET_PROPERTIES(${name} PROPERTIES COMPILE_FLAGS "/GL")
@@ -44,14 +48,24 @@ endif()
 
 
 find_package(Vulkan REQUIRED)
-# todo include_directories vulkan
-include_directories(${VULKAN_HPP_PATH})
+target_link_libraries(${name} ${Vulkan_LIBRARY})
+
+include_directories(Vulkan-Hpp/Vulkan-Headers/include)
+
+add_subdirectory(Vulkan-Hpp/glm)
+include_directories(Vulkan-Hpp/glm)
+
+add_subdirectory(Vulkan-Hpp/glslang)
+include_directories(Vulkan-Hpp/glslang)
+target_link_libraries(${name} glslang)
+target_link_libraries(${name} SPIRV)
+target_link_libraries(${name} glslang-default-resource-limits)
 
 
 SET(GLFW_BUILD_DOCS OFF CACHE BOOL "GLFW_BUILD_DOCS" FORCE)
 SET(GLFW_BUILD_TESTS OFF CACHE BOOL "GLFW_BUILD_TESTS" FORCE)
 SET(GLFW_INSTALL OFF CACHE BOOL "GLFW_INSTALL" FORCE)
-add_subdirectory(glfw)
+add_subdirectory(Vulkan-Hpp/glfw)
 target_link_libraries(${name} glfw)
 
 
@@ -65,7 +79,7 @@ SET(ZSTD_BUILD_PROGRAMS OFF CACHE BOOL "ZSTD_BUILD_PROGRAMS" FORCE)
 SET(ZSTD_BUILD_SHARED OFF CACHE BOOL "ZSTD_BUILD_SHARED" FORCE)
 SET(ZSTD_BUILD_TESTS OFF CACHE BOOL "ZSTD_BUILD_SHARED" FORCE)
 SET(ZSTD_LEGACY_SUPPORT OFF CACHE BOOL "ZSTD_LEGACY_SUPPORT" FORCE)
-add_subdirectory(zstd/build/cmake zstd)
+add_subdirectory(zstd/build/cmake)
 target_link_libraries(${name} libzstd_static)
 include_directories(
 	zstd/lib
